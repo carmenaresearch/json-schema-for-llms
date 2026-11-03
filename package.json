@@ -1,0 +1,51 @@
+{
+  "name": "json-schema-for-llms",
+  "version": "0.1.0",
+  "description": "Summarize large JSON, XML or TSV data as a compact JSON Schema with real examples, so an LLM can understand a file far bigger than its context window.",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "llm",
+    "large-json",
+    "json-for-llm",
+    "context-window",
+    "token-reduction",
+    "json-schema",
+    "json-schema-inference",
+    "json-summary",
+    "summarize-json",
+    "big-json",
+    "prompt-engineering",
+    "claude",
+    "chatgpt",
+    "openai",
+    "anthropic",
+    "gpt",
+    "data-profiling",
+    "xml",
+    "tsv",
+    "typescript",
+    "bun"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carmenaresearch/json-schema-for-llms.git"
+  },
+  "homepage": "https://github.com/carmenaresearch/json-schema-for-llms#readme",
+  "bugs": "https://github.com/carmenaresearch/json-schema-for-llms/issues",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.0"
+  }
+}
