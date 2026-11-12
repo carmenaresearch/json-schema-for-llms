@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Installs the packed tarball (exactly what npm would publish) into empty Node, TypeScript and Bun projects and runs
-# the public API in each. Usage: bun run smoke
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 work=$(mktemp -d)
