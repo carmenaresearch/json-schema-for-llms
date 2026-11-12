@@ -93,3 +93,10 @@ bun test && bun run typecheck   # development
 ```
 
 MIT License.
+
+## Related tools
+
+- [GenSON](https://github.com/wolverdude/GenSON) and [quicktype](https://github.com/glideapps/quicktype) infer a schema from samples (GenSON can also merge them), but keep no counts, value statistics or examples, don't stay within a token budget, and don't report which fields a new document adds.
+- [Microsoft LIDA](https://github.com/microsoft/lida) summarizes flat tables for LLMs with per-column statistics and samples; this library applies the same idea to nested JSON, across many documents.
+- [TOON](https://github.com/toon-format/toon) re-encodes JSON losslessly in fewer tokens; it doesn't reduce how much data there is.
+- [LangChain's JSON toolkit](https://docs.langchain.com/oss/python/integrations/tools/json) lets an agent explore large JSON key by key; a schema from this library is a good starting point for that exploration.
