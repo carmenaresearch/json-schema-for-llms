@@ -1,5 +1,7 @@
 # json-schema-for-llms
 
+[![npm](https://img.shields.io/npm/v/json-schema-for-llms)](https://www.npmjs.com/package/json-schema-for-llms) [![ci](https://github.com/carmenaresearch/json-schema-for-llms/actions/workflows/ci.yml/badge.svg)](https://github.com/carmenaresearch/json-schema-for-llms/actions/workflows/ci.yml)
+
 **Let an LLM work with JSON far larger than its context window, and keep that understanding up to date as new documents arrive.**
 
 You have a 2 MB API response, or a feed that returns a new one every 15 minutes. You want a model to write a parser or JSONPath for it, once, and to know when the data has changed enough that the parser needs rewriting. Pasting the data doesn't fit; sampling it misses things.
@@ -79,10 +81,10 @@ Standard [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema
 ## Install
 
 ```sh
-bun add github:carmenaresearch/json-schema-for-llms
+npm install json-schema-for-llms     # or: bun add / pnpm add / yarn add
 ```
 
-TypeScript source, no dependencies. Bun and Deno run it directly; Node needs a TypeScript-aware loader.
+ES module with TypeScript types, no dependencies. Node 18+, Bun, and Deno (`npm:json-schema-for-llms`).
 
 Options for `describe`, `merge` and `compact`: `samples` (examples per field, 3), `enumLimit` (50), `mapMinKeys` (20), `distinctLimit` (distinct values tracked per document, 1000), `stringLimit` (characters per example string, 80), `maxChars` (80,000).
 
