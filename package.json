@@ -1,12 +1,11 @@
 {
   "name": "json-schema-for-llms",
-  "version": "0.1.0",
-  "description": "Summarize large JSON, XML or TSV data as a compact JSON Schema with real examples, so an LLM can understand a file far bigger than its context window.",
+  "version": "2.0.0",
+  "description": "Turn JSON larger than an LLM context window into a small, mergeable JSON Schema with real examples and counts, and check new documents against it without a model call.",
   "type": "module",
   "exports": "./src/index.ts",
   "files": [
     "src",
-    "docs",
     "README.md",
     "LICENSE"
   ],
@@ -35,7 +34,9 @@
     "xml",
     "tsv",
     "typescript",
-    "bun"
+    "bun",
+    "json-schema-merge",
+    "schema-drift"
   ],
   "repository": {
     "type": "git",
