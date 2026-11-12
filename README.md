@@ -9,7 +9,7 @@ You have a 2 MB API response, or a feed that returns a new one every 15 minutes.
 This library reads every value and turns the data into a small JSON Schema with real examples and counts:
 
 ```
-2.5 MB JSON (20,000 orders, ~640,000 tokens)  →  1.6 KB schema (~410 tokens)
+2.6 MB JSON (20,000 orders)  →  1.7 KB schema, about 1,550 times smaller
 ```
 
 The schema is the only thing you keep. New documents are merged into it, and checked against it, without any model call.

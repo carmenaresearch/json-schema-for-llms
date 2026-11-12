@@ -156,14 +156,14 @@ group('compact', () => {
 });
 
 group('README figures', () => {
-  const mib = (text: string) => Math.round(text.length / 1048576 * 10) / 10;
-  const kib = (text: string) => Math.round(text.length / 1024 * 10) / 10;
-  test('a 2.5 MB file of 20,000 orders becomes a schema of about 1.6 KB', () => {
+  const mb = (text: string) => Math.round(text.length / 1e5) / 10;
+  const kb = (text: string) => Math.round(text.length / 1e2) / 10;
+  test('a 2.6 MB file of 20,000 orders becomes a schema of about 1.7 KB', () => {
     const statuses = ['paid', 'pending', 'refunded'];
     const orders = Array.from({ length: 20000 }, (_, i) => ({ id: `ord_${100000 + i}`, status: statuses[i % 3], total: Math.round((i * 37) % 50000) / 100,
       items: Array.from({ length: 1 + (i % 4) }, (_, j) => ({ sku: `SKU-${(i + j) % 250}`, qty: 1 + ((i + j) % 3) })), ...(i % 10 === 0 ? { coupon: 'SAVE10' } : {}) }));
     const document = { generatedAt: '2026-01-15T09:00:00Z', orders };
-    expect(mib(JSON.stringify(document))).toBe(2.5);
-    expect(kib(JSON.stringify(describe(document)))).toBe(1.6);
+    expect(mb(JSON.stringify(document))).toBe(2.6);
+    expect(kb(JSON.stringify(describe(document)))).toBe(1.7);
   });
 });
