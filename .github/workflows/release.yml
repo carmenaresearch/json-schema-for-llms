@@ -10,20 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - name: Tag matches package.json
-        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+      - name: Tag matches package.json and is on main
+        run: |
+          test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - run: npm install -g npm@11
       - run: bun install --frozen-lockfile
       - run: bun test
       - run: bun run typecheck
       - run: bun run smoke
-      - run: npm publish
+      - name: Publish unless this version is already on npm
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if npm view "json-schema-for-llms@$version" version >/dev/null 2>&1; then echo "already on npm"; else npm publish; fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+      - name: GitHub release unless it exists
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
           GH_TOKEN: ${{ github.token }}
