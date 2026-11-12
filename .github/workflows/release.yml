@@ -1,0 +1,48 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Tag matches package.json and is on main
+        run: |
+          test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - run: npm install -g npm@11
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: bun run typecheck
+      - run: bun run smoke
+      - name: Publish, or confirm npm already has this exact build
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          published="$(npm view "json-schema-for-llms@$version" dist.integrity 2>/dev/null || true)"
+          if [ -z "$published" ]; then npm publish; exit; fi
+          built="$(npm pack --json --dry-run | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(0))[0].integrity)")"
+          test "$published" = "$built" || { echo "npm has a different build of $version"; exit 1; }
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install from npm and import in Node and Deno
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          cd "$(mktemp -d)" && npm init -y >/dev/null
+          for attempt in 1 2 3 4 5 6; do npm install --silent "json-schema-for-llms@$version" && break; sleep 20; done
+          node --input-type=module -e "import { describe } from 'json-schema-for-llms'; if (typeof describe !== 'function') process.exit(1)"
+          npx -y deno@2 eval "const m = await import('npm:json-schema-for-llms@$version'); if (typeof m.describe !== 'function') Deno.exit(1)"
+      - name: GitHub release unless it exists
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

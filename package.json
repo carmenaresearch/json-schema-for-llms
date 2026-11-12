@@ -1,0 +1,77 @@
+{
+  "name": "json-schema-for-llms",
+  "version": "2.0.0",
+  "description": "Turn JSON larger than an LLM context window into a small, mergeable JSON Schema with real examples and counts, and check new documents against it without a model call.",
+  "keywords": [
+    "llm",
+    "large-json",
+    "json-for-llm",
+    "context-window",
+    "token-reduction",
+    "json-schema",
+    "json-schema-inference",
+    "json-summary",
+    "summarize-json",
+    "big-json",
+    "prompt-engineering",
+    "claude",
+    "chatgpt",
+    "openai",
+    "anthropic",
+    "gpt",
+    "data-profiling",
+    "xml",
+    "tsv",
+    "typescript",
+    "bun",
+    "json-schema-merge",
+    "schema-drift",
+    "schema-inference",
+    "merge-json-schema",
+    "llm-tools",
+    "json-to-schema",
+    "api-response",
+    "ai-agents"
+  ],
+  "homepage": "https://github.com/carmenaresearch/json-schema-for-llms#readme",
+  "bugs": "https://github.com/carmenaresearch/json-schema-for-llms/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carmenaresearch/json-schema-for-llms.git"
+  },
+  "license": "MIT",
+  "author": "Carmena Research <queries@carmenaresearch.com>",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "smoke": "bash scripts/smoke.sh",
+    "prepack": "bun run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.0"
+  }
+}
