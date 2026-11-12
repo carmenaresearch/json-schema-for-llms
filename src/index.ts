@@ -188,9 +188,9 @@ function setValues(schema: Schema, values: { value: Json; count: number }[] | un
 
 // Example records: one of each key set first, so optional fields and variants show, then the earliest ones.
 function pickRecords(records: Json[], o: Settings): Json[] {
-  const shape = (record: Json) => record && typeof record === 'object' && !Array.isArray(record) ? Object.keys(record).join('\u0000') : JSON.stringify(record);
-  const out: Json[] = [], shapes = new Set<string>();
-  for (const record of records) if (out.length < o.samples && !shapes.has(shape(record))) { out.push(record); shapes.add(shape(record)); }
+  const keySet = (record: Json) => record && typeof record === 'object' && !Array.isArray(record) ? Object.keys(record).join('\u0000') : JSON.stringify(record);
+  const out: Json[] = [], seen = new Set<string>();
+  for (const record of records) if (out.length < o.samples && !seen.has(keySet(record))) { out.push(record); seen.add(keySet(record)); }
   for (const record of records) if (out.length < o.samples && !out.includes(record)) out.push(record);
   return out;
 }
