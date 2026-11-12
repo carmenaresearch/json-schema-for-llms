@@ -26,15 +26,13 @@ jobs:
       - run: bun test
       - run: bun run typecheck
       - run: bun run smoke
-      - name: Publish, or confirm npm already has this exact build
+      - name: Publish (trusted publishing, no token), or confirm npm already has this exact build
         run: |
           version="$(node -p "require('./package.json').version")"
           published="$(npm view "json-schema-for-llms@$version" dist.integrity 2>/dev/null || true)"
           if [ -z "$published" ]; then npm publish; exit; fi
           built="$(npm pack --json --dry-run | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(0))[0].integrity)")"
           test "$published" = "$built" || { echo "npm has a different build of $version"; exit 1; }
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Install from npm and import in Node and Deno
         run: |
           version="$(node -p "require('./package.json').version")"
