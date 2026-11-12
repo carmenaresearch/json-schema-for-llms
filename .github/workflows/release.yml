@@ -26,12 +26,22 @@ jobs:
       - run: bun test
       - run: bun run typecheck
       - run: bun run smoke
-      - name: Publish unless this version is already on npm
+      - name: Publish, or confirm npm already has this exact build
         run: |
           version="$(node -p "require('./package.json').version")"
-          if npm view "json-schema-for-llms@$version" version >/dev/null 2>&1; then echo "already on npm"; else npm publish; fi
+          published="$(npm view "json-schema-for-llms@$version" dist.integrity 2>/dev/null || true)"
+          if [ -z "$published" ]; then npm publish; exit; fi
+          built="$(npm pack --json --dry-run | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(0))[0].integrity)")"
+          test "$published" = "$built" || { echo "npm has a different build of $version"; exit 1; }
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install from npm and import in Node and Deno
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          cd "$(mktemp -d)" && npm init -y >/dev/null
+          for attempt in 1 2 3 4 5 6; do npm install --silent "json-schema-for-llms@$version" && break; sleep 20; done
+          node --input-type=module -e "import { describe } from 'json-schema-for-llms'; if (typeof describe !== 'function') process.exit(1)"
+          npx -y deno@2 eval "const m = await import('npm:json-schema-for-llms@$version'); if (typeof m.describe !== 'function') Deno.exit(1)"
       - name: GitHub release unless it exists
         run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
