@@ -1,7 +1,7 @@
 {
   "name": "json-schema-for-llms",
   "version": "2.0.0",
-  "description": "Turn JSON larger than an LLM context window into a small, mergeable JSON Schema with real examples and counts, and check new documents against it without a model call.",
+  "description": "Turn JSON larger than an LLM context window into a JSON Schema of a few hundred tokens, with real examples and counts; merge schemas and check new documents against them without a model call.",
   "keywords": [
     "llm",
     "large-json",
@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "js-tiktoken": "1",
     "typescript": "^5.9.0"
   }
 }

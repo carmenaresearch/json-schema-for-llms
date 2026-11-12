@@ -2,15 +2,17 @@
 
 [![npm](https://img.shields.io/npm/v/json-schema-for-llms)](https://www.npmjs.com/package/json-schema-for-llms) [![ci](https://github.com/carmenaresearch/json-schema-for-llms/actions/workflows/ci.yml/badge.svg)](https://github.com/carmenaresearch/json-schema-for-llms/actions/workflows/ci.yml)
 
-**Let an LLM work with JSON far larger than its context window, and keep that understanding up to date as new documents arrive.**
+**Let an LLM work with JSON far larger than its context window, for a few hundred tokens, and reuse what it writes on every document with the same structure.**
 
-You have a 2 MB API response, or a feed that returns a new one every few minutes. You want a model to write a parser or JSONPath for it, once, and to know when the data has changed enough that the parser needs rewriting. Pasting the data doesn't fit; sampling it misses things.
+You have an API response of a million tokens, or a feed that returns a new one every few minutes. You want a model to write a parser or JSONPath for it, once, and to know when the data has changed enough that the parser needs rewriting. Pasting the data doesn't fit; sampling it misses things.
 
 This library reads every value and turns the data into a small JSON Schema with real examples and counts:
 
 ```
-2.6 MB JSON (20,000 orders)  →  1.7 KB schema, about 1,550 times smaller
+20,000 orders as JSON: 936,288 tokens  →  schema: 541 tokens, about 1,730 times fewer
 ```
+
+Counted with the o200k tokenizer used by GPT-4o and later OpenAI models; the test suite pins both counts.
 
 The schema is the only thing you keep. New documents are merged into it, and checked against it, without any model call.
 
