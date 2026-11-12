@@ -1,0 +1,7 @@
+{
+  "name": "json-schema-for-llms-example-large-orders",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": { "js-tiktoken": "^1.0.0", "json-schema-for-llms": "^2.0.0" }
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "json-schema-for-llms",
+  "description": "Turn JSON larger than an LLM context window into a JSON Schema of a few hundred tokens with counts and examples; merge schemas and check new documents with fits().",
+  "excludeFolders": ["test", "scripts"],
+  "rules": [
+    "Use compact(document) when a JSON document may be too large to paste into a prompt; it returns whichever of the document and its schema is smaller.",
+    "Ask the model for a parser, JSONPath or jq expression from the schema, run it on the full document, and call fits(schema, describe(next)) before reusing it; regenerate when added is not empty."
+  ]
+}

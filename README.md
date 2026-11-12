@@ -27,6 +27,8 @@ The schema is the only thing you keep. New documents are merged into it, and che
 
 ## Use
 
+Try it in the browser: [examples/large-orders on StackBlitz](https://stackblitz.com/github/carmenaresearch/json-schema-for-llms/tree/main/examples/large-orders) counts the tokens of a 20,000-order document and its schema, then shows `fits` catching a new field.
+
 **Give a model a document too large to paste:**
 
 ```ts
