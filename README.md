@@ -18,7 +18,7 @@ The schema is the only thing you keep. New documents are merged into it, and che
 |---|---|
 | `describe(document)` | A JSON Schema of one document: types, counts, ranges, categories with frequencies, and real example records. |
 | `merge(a, b)` | One schema for everything `a` and `b` describe, as if read together. |
-| `fits(schema, document)` | Whether a document has fields the schema has never seen. |
+| `fits(schema, other)` | Whether `other` (usually `describe(document)`) has fields the schema has never seen. |
 | `compact(document)` | The smaller of the document and its schema, ready for a prompt. |
 
 ## Use
@@ -43,13 +43,13 @@ import { describe, merge, fits } from 'json-schema-for-llms';
 let schema = documents.map(d => describe(d)).reduce((a, b) => merge(a, b));   // many documents
 schema = merge(schema, describe(next));                                         // one more
 
-fits(schema, latest);
+fits(schema, describe(latest));
 // { fits: false, added: ['$.races[*].called'], missing: [], widened: [] }
 ```
 
 A document **fits** unless it has a field path the schema lacks (`added`). Fields it lacks (`missing`), new values, new IDs and new types at a known path (`widened`, e.g. `null` before and a number now) don't count. Reuse what the model built while documents fit; regenerate it when `added` isn't empty. Paths use `[*]` for array items and `{*}` for the values of an object keyed by IDs.
 
-To choose among several schemas, run `fits` on each and prefer the fitting one with the fewest `missing` paths.
+To choose among several schemas, describe the document once, run `fits` against each, and prefer the fitting one with the fewest `missing` paths.
 
 ## What the schema says
 
@@ -84,7 +84,7 @@ bun add github:carmenaresearch/json-schema-for-llms
 
 TypeScript source, no dependencies. Bun and Deno run it directly; Node needs a TypeScript-aware loader.
 
-Options for `describe`, `merge`, `fits` and `compact`: `samples` (examples per field, 3), `enumLimit` (50), `mapMinKeys` (20), `distinctLimit` (distinct values tracked per document, 1000), `stringLimit` (characters per example string, 80), `maxChars` (80,000).
+Options for `describe`, `merge` and `compact`: `samples` (examples per field, 3), `enumLimit` (50), `mapMinKeys` (20), `distinctLimit` (distinct values tracked per document, 1000), `stringLimit` (characters per example string, 80), `maxChars` (80,000).
 
 **2.0 is a breaking change.** Schemas from 1.x are refused; describe the documents again.
 

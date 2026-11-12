@@ -3,7 +3,7 @@
 // describe(document)     reads every value of a document into a JSON Schema (draft 2020-12) with statistics and
 //                        real examples. Exact within the document.
 // merge(a, b)            one schema for everything a and b describe. Order and grouping do not change the statistics.
-// fits(schema, document) whether a document has fields the schema has never seen (no model involved).
+// fits(schema, other)    whether other (usually describe(document)) has fields schema has never seen (no model).
 // compact(document)      the smaller of the document and its schema, ready for a prompt.
 //
 // The schema is the only state: there is nothing else to store. Statistics JSON Schema has no keyword for use an
@@ -364,10 +364,11 @@ export interface Fit {
   widened: string[];  // known paths where the document has a type the schema has not seen there
 }
 
-// Whether a document stays within what a schema has seen. Paths are JSONPath style, with [*] for array items and
-// {*} for an ID-keyed map's values (its keys are data). Only new paths make a document not fit.
-export function fits(schema: Schema, document: unknown, options: Options = {}): Fit {
-  check(schema);
+// Whether what other describes stays within what schema has seen: other is usually describe(document), made once
+// and compared with as many schemas as needed. Paths are JSONPath style, with [*] for array items and {*} for an
+// ID-keyed map's values (its keys are data). Only new paths make it not fit.
+export function fits(schema: Schema, other: Schema): Fit {
+  check(schema); check(other);
   const paths = (target: Schema, path = '$', out = new Map<string, Schema>()) => {
     out.set(path, target);
     for (const [key, property] of Object.entries((target.properties ?? {}) as Record<string, Schema>)) paths(property, path + step(key), out);
@@ -375,8 +376,7 @@ export function fits(schema: Schema, document: unknown, options: Options = {}): 
     if (target.items) paths(target.items, `${path}[*]`, out);
     return out;
   };
-  const wide = { ...options, maxChars: Infinity };
-  const before = paths(schema), after = paths(merge(schema, describe(document, wide), wide));
+  const before = paths(schema), after = paths(merge(schema, other, { maxChars: Infinity }));
   const added: string[] = [], missing: string[] = [], widened: string[] = [];
   for (const [path, now] of after) {
     const was = before.get(path);

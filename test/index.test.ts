@@ -120,20 +120,20 @@ group('fits', () => {
   const base = describe({ race: 'Senate', counties: ids(30), updated: null });
 
   test('new IDs, missing optional fields and widened types still fit', () => {
-    expect(fits(base, { race: 'Senate', counties: ids(2, 500), updated: '21:04' })).toEqual({ fits: true, added: [], missing: [], widened: ['$.updated'] });
-    expect(fits(base, { race: 'House', counties: ids(25, 40) })).toMatchObject({ fits: true, missing: ['$.updated'] });
+    expect(fits(base, describe({ race: 'Senate', counties: ids(2, 500), updated: '21:04' }))).toEqual({ fits: true, added: [], missing: [], widened: ['$.updated'] });
+    expect(fits(base, describe({ race: 'House', counties: ids(25, 40) }))).toMatchObject({ fits: true, missing: ['$.updated'] });
   });
 
   test('a new field does not fit, wherever it appears', () => {
-    expect(fits(base, { race: 'Senate', counties: ids(30), updated: null, called: true })).toMatchObject({ fits: false, added: ['$.called'] });
+    expect(fits(base, describe({ race: 'Senate', counties: ids(30), updated: null, called: true }))).toMatchObject({ fits: false, added: ['$.called'] });
     const nested = Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`c${index}`, { votes: index, margin: 0.5 }]));
-    expect(fits(base, { race: 'Senate', counties: nested, updated: null }).added).toEqual(['$.counties{*}.margin']);
-    expect(fits(describe({ rows: [{ a: 1 }] }), { rows: [{ a: 1, b: 2 }], 'odd key': 1 }).added).toEqual(['$.rows[*].b', '$["odd key"]']);
+    expect(fits(base, describe({ race: 'Senate', counties: nested, updated: null })).added).toEqual(['$.counties{*}.margin']);
+    expect(fits(describe({ rows: [{ a: 1 }] }), describe({ rows: [{ a: 1, b: 2 }], 'odd key': 1 })).added).toEqual(['$.rows[*].b', '$["odd key"]']);
   });
 
   test('a document fits a schema it was merged into', () => {
     const document = { race: 'Governor', counties: ids(10, 70), updated: 'now' };
-    expect(fits(merge(base, describe(document)), document).fits).toBe(true);
+    expect(fits(merge(base, describe(document)), describe(document)).fits).toBe(true);
   });
 });
 
