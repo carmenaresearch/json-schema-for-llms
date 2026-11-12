@@ -2,8 +2,8 @@ import { describe as group, expect, test } from 'bun:test';
 import { compact, describe, fits, FORMAT, merge, type Schema } from '../src/index';
 
 const all = (documents: unknown[]) => documents.map(document => describe(document)).reduce((a, b) => merge(a, b));
-const county = (name: string, votes: unknown, extra: Record<string, unknown> = {}) => ({ county: name, votes, precincts: 3, ...extra });
-const ids = (count: number, start = 0) => Object.fromEntries(Array.from({ length: count }, (_, index) => [`c${start + index}`, { votes: index }]));
+const warehouse = (name: string, stock: unknown, extra: Record<string, unknown> = {}) => ({ warehouse: name, stock, aisles: 3, ...extra });
+const ids = (count: number, start = 0) => Object.fromEntries(Array.from({ length: count }, (_, index) => [`p${start + index}`, { stock: index }]));
 
 group('describe', () => {
   test('reads every value and collapses array items into one schema', () => {
@@ -18,16 +18,16 @@ group('describe', () => {
   });
 
   test('categories are listed with frequencies, most frequent first, beyond any small fixed limit', () => {
-    const parties = ['DEM', 'REP', 'NPA', 'LPF', 'GRE'], states = Array.from({ length: 30 }, (_, index) => `S${index}`);
-    const rows = Array.from({ length: 600 }, (_, index) => ({ party: parties[index % 7 < 3 ? 0 : index % 5], state: states[index % 30] }));
+    const plans = ['FREE', 'PRO', 'TEAM', 'EDU', 'ENT'], regions = Array.from({ length: 30 }, (_, index) => `R${index}`);
+    const rows = Array.from({ length: 600 }, (_, index) => ({ plan: plans[index % 7 < 3 ? 0 : index % 5], region: regions[index % 30] }));
     const schema: Schema = describe(rows);
-    expect(schema.items.properties.party.enum[0]).toBe('DEM');
-    expect(schema.items.properties.party['x-frequency'].reduce((a: number, b: number) => a + b)).toBe(600);
-    expect(schema.items.properties.state.enum).toHaveLength(30);
+    expect(schema.items.properties.plan.enum[0]).toBe('FREE');
+    expect(schema.items.properties.plan['x-frequency'].reduce((a: number, b: number) => a + b)).toBe(600);
+    expect(schema.items.properties.region.enum).toHaveLength(30);
   });
 
   test('free text and identifiers are not categories', () => {
-    const notes = ['Recount requested by the county board', 'Late ballots counted after review', 'No issues reported'];
+    const notes = ['Customer asked for a refund by email', 'Parcel left with a neighbour after two attempts', 'No issues reported'];
     const schema: Schema = describe(Array.from({ length: 80 }, (_, index) => ({ note: notes[index % 3], id: `v-${index}` })));
     expect(schema.items.properties.note.enum).toBeUndefined();
     expect(schema.items.properties.note['x-distinct']).toBe(3);
@@ -38,7 +38,7 @@ group('describe', () => {
   test('treats many same-typed values as a map keyed by ID', () => {
     const schema: Schema = describe({ ...ids(50), updatedAt: '2026-01-01' });
     expect(schema.additionalProperties['x-count']).toBe(50);
-    expect(schema.propertyNames.examples).toEqual(['c0', 'c1', 'c2']);
+    expect(schema.propertyNames.examples).toEqual(['p0', 'p1', 'p2']);
     expect(schema.properties.updatedAt.const).toBe('2026-01-01');
   });
 
@@ -50,7 +50,7 @@ group('describe', () => {
   });
 
   test('reports numeric strings, as XML and TSV parsers produce', () => {
-    expect(describe([{ votes: '12' }, { votes: '7' }, { votes: '40' }]).items.properties.votes['x-numeric']).toEqual({ minimum: 7, maximum: 40 });
+    expect(describe([{ qty: '12' }, { qty: '7' }, { qty: '40' }]).items.properties.qty['x-numeric']).toEqual({ minimum: 7, maximum: 40 });
   });
 
   test('the size budget cuts examples, never fields', () => {
@@ -68,18 +68,18 @@ group('describe', () => {
 });
 
 group('merge', () => {
-  const documents = [county('Fulton', null), county('Cobb', 812, { updated: '21:04' }), county('DeKalb', 77), county('Gwinnett', '1,204')];
+  const documents = [warehouse('Leeds', null), warehouse('York', 812, { updated: '21:04' }), warehouse('Bath', 77), warehouse('Hull', '1,204')];
   const drop = ({ examples, ...rest }: Schema): Schema => Object.fromEntries(Object.entries(rest).map(([key, value]) => [key, value && typeof value === 'object' && !Array.isArray(value) ? drop(value) : value]));
 
   test('a field null in one document and a number in another has both types', () => {
-    const votes = all(documents.slice(0, 2)).properties.votes;
-    expect(votes.type).toEqual(['null', 'integer']);
-    expect(votes['x-type-counts']).toEqual({ null: 1, integer: 1 });
+    const stock = all(documents.slice(0, 2)).properties.stock;
+    expect(stock.type).toEqual(['null', 'integer']);
+    expect(stock['x-type-counts']).toEqual({ null: 1, integer: 1 });
   });
 
   test('a field in only some documents is optional', () => {
     const schema = all(documents);
-    expect(schema.required).toEqual(['county', 'votes', 'precincts']);
+    expect(schema.required).toEqual(['warehouse', 'stock', 'aisles']);
     expect(schema.properties.updated['x-count']).toBe(1);
   });
 
@@ -88,14 +88,14 @@ group('merge', () => {
     const one = drop(merge(merge(merge(a, b), c), d)), two = drop(merge(merge(a, b), merge(c, d))), three = drop(merge(d, merge(c, merge(b, a))));
     const sortTypes = (schema: Schema) => JSON.parse(JSON.stringify(schema, (key, value) => key === 'type' && Array.isArray(value) ? [...value].sort() : value));
     expect(sortTypes(two)).toEqual(sortTypes(one));
-    expect(sortTypes(three).properties.votes['x-count']).toBe(4);
-    expect(sortTypes(three).properties.votes.type).toEqual(sortTypes(one).properties.votes.type);
+    expect(sortTypes(three).properties.stock['x-count']).toBe(4);
+    expect(sortTypes(three).properties.stock.type).toEqual(sortTypes(one).properties.stock.type);
   });
 
   test('categories add their frequencies and can become text', () => {
-    const party = (values: string[]) => describe(values.map(value => ({ party: value })));
-    const merged = merge(party(['DEM', 'DEM', 'REP', 'REP']), party(['DEM', 'DEM', 'NPA', 'NPA'])).items.properties.party;
-    expect(merged.enum).toEqual(['DEM', 'REP', 'NPA']);
+    const plan = (values: string[]) => describe(values.map(value => ({ plan: value })));
+    const merged = merge(plan(['FREE', 'FREE', 'PRO', 'PRO']), plan(['FREE', 'FREE', 'TEAM', 'TEAM'])).items.properties.plan;
+    expect(merged.enum).toEqual(['FREE', 'PRO', 'TEAM']);
     expect(merged['x-frequency']).toEqual([4, 2, 2]);
   });
 
@@ -106,9 +106,9 @@ group('merge', () => {
   });
 
   test('a document with a few IDs joins the map earlier documents established', () => {
-    const merged = merge(describe({ counties: ids(30) }), describe({ counties: { c99: { votes: 5 }, c100: { votes: 6 } } }));
-    expect(merged.properties.counties.properties).toBeUndefined();
-    expect(merged.properties.counties.additionalProperties['x-count']).toBe(32);
+    const merged = merge(describe({ products: ids(30) }), describe({ products: { p99: { stock: 5 }, p100: { stock: 6 } } }));
+    expect(merged.properties.products.properties).toBeUndefined();
+    expect(merged.properties.products.additionalProperties['x-count']).toBe(32);
   });
 
   test('refuses schemas from another version', () => {
@@ -117,22 +117,22 @@ group('merge', () => {
 });
 
 group('fits', () => {
-  const base = describe({ race: 'Senate', counties: ids(30), updated: null });
+  const base = describe({ region: 'North', products: ids(30), updated: null });
 
   test('new IDs, missing optional fields and widened types still fit', () => {
-    expect(fits(base, describe({ race: 'Senate', counties: ids(2, 500), updated: '21:04' }))).toEqual({ fits: true, added: [], missing: [], widened: ['$.updated'] });
-    expect(fits(base, describe({ race: 'House', counties: ids(25, 40) }))).toMatchObject({ fits: true, missing: ['$.updated'] });
+    expect(fits(base, describe({ region: 'North', products: ids(2, 500), updated: '21:04' }))).toEqual({ fits: true, added: [], missing: [], widened: ['$.updated'] });
+    expect(fits(base, describe({ region: 'South', products: ids(25, 40) }))).toMatchObject({ fits: true, missing: ['$.updated'] });
   });
 
   test('a new field does not fit, wherever it appears', () => {
-    expect(fits(base, describe({ race: 'Senate', counties: ids(30), updated: null, called: true }))).toMatchObject({ fits: false, added: ['$.called'] });
-    const nested = Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`c${index}`, { votes: index, margin: 0.5 }]));
-    expect(fits(base, describe({ race: 'Senate', counties: nested, updated: null })).added).toEqual(['$.counties{*}.margin']);
+    expect(fits(base, describe({ region: 'North', products: ids(30), updated: null, discontinued: true }))).toMatchObject({ fits: false, added: ['$.discontinued'] });
+    const nested = Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`p${index}`, { stock: index, price: 0.5 }]));
+    expect(fits(base, describe({ region: 'North', products: nested, updated: null })).added).toEqual(['$.products{*}.price']);
     expect(fits(describe({ rows: [{ a: 1 }] }), describe({ rows: [{ a: 1, b: 2 }], 'odd key': 1 })).added).toEqual(['$.rows[*].b', '$["odd key"]']);
   });
 
   test('a document fits a schema it was merged into', () => {
-    const document = { race: 'Governor', counties: ids(10, 70), updated: 'now' };
+    const document = { region: 'East', products: ids(10, 70), updated: 'now' };
     expect(fits(merge(base, describe(document)), describe(document)).fits).toBe(true);
   });
 });

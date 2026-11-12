@@ -4,7 +4,7 @@
 
 **Let an LLM work with JSON far larger than its context window, and keep that understanding up to date as new documents arrive.**
 
-You have a 2 MB API response, or a feed that returns a new one every 15 minutes. You want a model to write a parser or JSONPath for it, once, and to know when the data has changed enough that the parser needs rewriting. Pasting the data doesn't fit; sampling it misses things.
+You have a 2 MB API response, or a feed that returns a new one every few minutes. You want a model to write a parser or JSONPath for it, once, and to know when the data has changed enough that the parser needs rewriting. Pasting the data doesn't fit; sampling it misses things.
 
 This library reads every value and turns the data into a small JSON Schema with real examples and counts:
 
@@ -46,7 +46,7 @@ let schema = documents.map(d => describe(d)).reduce((a, b) => merge(a, b));   //
 schema = merge(schema, describe(next));                                         // one more
 
 fits(schema, describe(latest));
-// { fits: false, added: ['$.races[*].called'], missing: [], widened: [] }
+// { fits: false, added: ['$.orders[*].refunded'], missing: [], widened: [] }
 ```
 
 A document **fits** unless it has a field path the schema lacks (`added`). Fields it lacks (`missing`), new values, new IDs and new types at a known path (`widened`, e.g. `null` before and a number now) don't count. Reuse what the model built while documents fit; regenerate it when `added` isn't empty. Paths use `[*]` for array items and `{*}` for the values of an object keyed by IDs.
@@ -67,7 +67,7 @@ Standard [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema
 | `x-format` | `json-schema-for-llms/2`; `merge` and `fits` refuse anything else |
 
 - **Categories.** A field with at most 50 distinct short labels (40 characters, 4 words each) is listed in full as `enum` with frequencies. Free text and long identifiers get `x-distinct` and a few examples instead.
-- **ID-keyed maps.** An object keyed by IDs (`{"13121": {...}, "13089": {...}}`) becomes one `additionalProperties` schema, so new IDs are never new fields. Once a schema has a map somewhere, a later document with only a few IDs there joins it.
+- **ID-keyed maps.** An object keyed by IDs (`{"sku-1042": {...}, "sku-1043": {...}}`) becomes one `additionalProperties` schema, so new IDs are never new fields. Once a schema has a map somewhere, a later document with only a few IDs there joins it.
 - **Size.** `maxChars` (default 80,000) is met by cutting examples only. Field names, types and counts are never cut, so `fits` stays exact.
 
 ## Good to know

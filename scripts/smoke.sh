@@ -10,13 +10,13 @@ echo "packed $(basename "$tarball"): $(tar -tzf "$tarball" | sed 's#^package/##'
 cat > "$work/use.mjs" <<'EOF'
 import assert from 'node:assert/strict';
 import { compact, describe, fits, merge, FORMAT } from 'json-schema-for-llms';
-const a = describe({ race: 'Senate', counties: [{ fips: '13121', votes: null }] });
-const b = describe({ race: 'Senate', counties: [{ fips: '13089', votes: 812 }] });
+const a = describe({ region: 'North', products: [{ sku: 'A-1042', stock: null }] });
+const b = describe({ region: 'North', products: [{ sku: 'A-1043', stock: 812 }] });
 const schema = merge(a, b);
 assert.equal(schema['x-format'], FORMAT, 'schemas carry the format marker');
-assert.deepEqual(schema.properties.counties.items.properties.votes.type, ['null', 'integer'], 'null and a number give both types');
+assert.deepEqual(schema.properties.products.items.properties.stock.type, ['null', 'integer'], 'null and a number give both types');
 assert.equal(fits(schema, b).fits, true, 'a described document fits its merged schema');
-assert.deepEqual(fits(schema, describe({ race: 'Senate', counties: [], called: true })).added, ['$.called'], 'a new field is reported');
+assert.deepEqual(fits(schema, describe({ region: 'North', products: [], discontinued: true })).added, ['$.discontinued'], 'a new field is reported');
 assert.equal(compact({ ok: true }).kind, 'document', 'a small document is returned as is');
 console.log('ok');
 EOF
