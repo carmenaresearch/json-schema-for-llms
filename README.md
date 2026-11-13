@@ -88,7 +88,7 @@ Standard [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema
 npm install json-schema-for-llms     # or: bun add / pnpm add / yarn add
 ```
 
-It is an ES module with TypeScript types and no dependencies. Load it with `import`, not `require`. It runs on Node 18 and later, Bun, and Deno (`npm:json-schema-for-llms`).
+It is an ES module with TypeScript types and no dependencies. Load it with `import`, not `require`. It runs on Node 18 and later, Bun, and Deno (`npm:json-schema-for-llms`, or from JSR: `deno add jsr:@carmenaresearch/json-schema-for-llms`).
 
 Options for `describe`, `merge` and `compact`: `samples` (examples per field, 3), `enumLimit` (50), `mapMinKeys` (20), `distinctLimit` (distinct values tracked per document, 1000), `stringLimit` (characters per example string, 80), `maxChars` (80,000).
 

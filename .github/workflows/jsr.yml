@@ -1,0 +1,23 @@
+name: jsr
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: jsr.json and package.json have the same version
+        run: test "$(node -p "require('./jsr.json').version")" = "$(node -p "require('./package.json').version")"
+      - name: Publish to JSR (GitHub OIDC, no token) unless this version is there
+        run: |
+          version="$(node -p "require('./jsr.json').version")"
+          if curl -fsS https://jsr.io/@carmenaresearch/json-schema-for-llms/meta.json | node -e "const m=JSON.parse(require('fs').readFileSync(0)); process.exit(m.versions['$version'] ? 0 : 1)"; then echo "JSR already has $version"; exit 0; fi
+          npx -y jsr publish
